@@ -1,7 +1,7 @@
 ################# TARGET #################
 set(NFLoggingSource ${CMAKE_CURRENT_SOURCE_DIR}/)
 
-set(NFLoggingPubIncDir ${NFLoggingSource}Public/)
+set(NFLoggingPublIncDir ${NFLoggingSource}Public/)
 set(NFLoggingPrivIncDir ${NFLoggingSource}Private/)
 set(NFLoggingTarget NFLogging)
 
@@ -11,7 +11,7 @@ add_library(${NFLoggingTarget} SHARED
 )
 
 target_compile_definitions(${NFLoggingTarget}
-        PRIVATE NFLOGEXPORTS
+        PRIVATE NFLOG_EXPORTS
 )
 
 MESSAGE(STATUS "NFLogging target created")
@@ -25,7 +25,7 @@ target_include_directories(
 target_include_directories(
         ${NFLoggingTarget}
         PUBLIC
-        ${NFLoggingPubIncDir}
+        ${NFLoggingPublIncDir}
 )
 
 
@@ -33,7 +33,7 @@ target_include_directories(
 
 
 #copy all public headers to include directory
-file(GLOB NFLoggingPublicHeaders ${NFLoggingPubIncDir}*.h)
+file(GLOB NFLoggingPublicHeaders ${NFLoggingPublIncDir}*.h)
 SET(HeaderDestinationDir ${BASE_OUTPUT_DIR}/include/NFLogging)
 MESSAGE(STATUS "NFLoggingPubIncFiles: ${NFLoggingPublicHeaders} TO ${HeaderDestinationDir}")
 #COPY BUT DONT CACHE

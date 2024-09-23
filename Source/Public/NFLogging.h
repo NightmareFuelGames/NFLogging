@@ -47,6 +47,11 @@ NFLOG_NS_DEC
     {
       this->message = std::make_shared<std::string>(message);
     }
+
+    [[nodiscard]] std::string& getMessage() const
+    {
+      return *message;
+    }
   };
 
   // Use NFLOG_API for all functions and global variables

@@ -31,7 +31,7 @@
 #endif
 */
 
-#ifdef NFLOGEXPORTS
+#ifdef NFLOG_EXPORTS
 	#define NFLOG_API __declspec(dllexport)
 #else
 	#define NFLOG_API __declspec(dllimport)
