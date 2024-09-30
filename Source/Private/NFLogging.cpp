@@ -13,82 +13,137 @@
  ******************************************************************************/
 
 #include "NFLogging.h"
-
-#include <NFLogCategoryManager.h>
 #include <iostream>
-#include "NFLogCategory.h"
+#include <mutex>
+
+#include "NFLogMessage.h"
+#include "NFLogLevel.h"
+
+
+#include <NFLogCategory.h>
+#include <NFLogCategoryManager.h>
 
 namespace nf::log
 {
-  LogFunctionPtr G_LogFunction = nullptr;
+  LogFunctionPtr      G_LogFunction                  = nullptr;
+  LogCategoryManager *LogCategoryManager::m_Instance = nullptr;
+  static bool         initialized                    = false;
 
-  inline void setLoggingFunction(const LogFunctionPtr logFunc)
+  void init(LogFunctionPtr logFunc)
   {
+    if (initialized) { return; }
     G_LogFunction = logFunc;
-  }
 
-  /*
-  const static LogCategory* GetLogCategory(const std::string& name)
-  {
-    return allRegisteredCategories[name];
-  }
-  */
+    LogCategoryManager::m_Instance = new LogCategoryManager();
 
-  void init(const LogFunctionPtr logFunc)
-  {
-    setLoggingFunction(logFunc);
+    LogCategoryManager::m_Instance->registerCategory("Core");
+    LogCategoryManager::m_Instance->registerCategory("Temp");
+    initialized = true;
   }
 
   void shutDown()
   {
-    LogCategoryManager::shutDown();
-  }
-
-  /////////////////////////////////////////////////////
-  std::string levelToString(const LogLevel level)
-  {
-    const static std::string unkown  = "!UNKOWN! LEVEL";
-    const static std::string info    = "Info   ";
-    const static std::string warning = "Warning";
-    const static std::string error   = "Error  ";
-
-    switch (level)
+    if (LogCategoryManager::m_Instance != nullptr)
     {
-    case LogLevel::Info:
-      return info;
-    case LogLevel::Warning:
-      return warning;
-    case LogLevel::Error:
-      return error;
+      LogCategoryManager::m_Instance->shutDown();
+      delete LogCategoryManager::m_Instance;
+      LogCategoryManager::m_Instance = nullptr;
     }
-    return unkown;
   }
 
-  void logImpl(
-    //@formatter:off
-    LogCategory *category, const std::string& message,
-    const LogLevel level, const bool checkIfCategoryIsRegistered = true
-    //@formatter:on
-    )
+  void callGlobalLogFunction(const std::shared_ptr<LogCategory> &category, const std::shared_ptr<LogMessage> &message)
   {
-    if (category == nullptr)
+    if (G_LogFunction != nullptr)
+    {
+      G_LogFunction(category.get(), message.get());
+    }
+    else
+    {
+      std::cout
+        << std::string()
+        << category->c_Name
+        << std::string(" | ")
+        << message->getMessage()
+        << std::endl;
+    }
+  }
+
+  /*void log(
+    std::string *category,
+    LogLevel     level,
+    std::string *message)
+  {
+    /*td::string categoryString = *category; ///<---here is the error
+    std::string messageString  = *message;
+
+    log(categoryString, level, messageString);void#1#
+  }*/
+
+  void log(const char *category, LogLevel level, const char *message) noexcept
+  {
+    static std::mutex m_mutex;
+    //lock
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    if
+    (
+      !
+      initialized
+    )
     {
       return;
     }
 
+    const auto logCategory =
+      LogCategoryManager::m_Instance->getCategoryByName(category);
+    const auto logMessage = std::make_shared<LogMessage>(message, level);
+
+    logCategory
+      ->
+      addLogMessage(logMessage);
+    callGlobalLogFunction(logCategory, logMessage);
+  }
+
+  /*void log(std::string category,
+           LogLevel    level,
+           std::string message
+    ) {}*/
+
+  /*void log(std::shared_ptr<std::string> category,
+           LogLevel                     level,
+           std::shared_ptr<std::string> message
+    )
+  {
+    std::string categoryString(*category);
+
+    LogCategory *logCategory = LogCategoryManager::m_Instance->getCategoryByName(categoryString).get();
+    LogMessage * logMessage  = new LogMessage(*message, level);
+
+    callGlobalLogFunction(logCategory, logMessage);
+  }*/ // namespace nf::log
+
+  /////////////////////////////////////////////////////
+  // Deprecated functions
+  /////////////////////////////////////////////////////
+  /*
+  void logImpl(
+    //@formatter:off
+    LogCategory* category, const char* message,
+    const LogLevel level, const bool checkIfCategoryIsRegistered = true
+    //@formatter:on
+    )
+  {
     if (checkIfCategoryIsRegistered) {} //todo: implement
 
     if (G_LogFunction != nullptr)
     {
-      LogMessage *msg = new LogMessage(message, level);
-      G_LogFunction(category, msg);
-      category->addLogMessage(msg);
+      G_LogFunction(category, new LogMessage(message, level));
     }
     else
     {
       std::cout << levelToString(level)
         << " | "
-        << category->getName()
+        << category->m_Name
         << std::string(" | ")
         << message
         << std::endl;
@@ -101,79 +156,49 @@ namespace nf::log
    * @param _cat
    * @param message
    * @param level
-   */
+   #1#
   void logImpl(const std::string &_cat,
                const std::string &message,
                const LogLevel     level)
   {
-    if (_cat.empty())
+    if (_cat.empty() || message.empty())
     {
-      LogCategoryManager::sendCoreCategory(
-        "Category name is empty, logging (" +
-        (message.length() > 4)
-        ? message.substr(0, 4)
-        : message +
-        ") to the temp category", LogLevel::Error);
-
-      logImpl(LogCategoryManager::getTempCategory(), message, level);
+      std::string errorMessage =
+        "Category name is empty. Can't log message.";
+      error("NFLogging", errorMessage);
       return;
     }
 
-    logImpl(LogCategoryManager::getInstance().getCategoryChecked(_cat), message, level);
+
   }
 
-  void log(LogCategory *category, const std::string &message, const LogLevel level)
+
+  void loggingImpl(LogCategory *category, const char *message, LogLevel level)
   {
     logImpl(category, message, level);
   }
 
-  void log(const std::string &categoryName, const std::string &message, const LogLevel level)
+  void loggingImpl(const char *categoryName, const char *message, LogLevel level)
   {
     logImpl(categoryName, message, level);
   }
 
-  /*void log(const std::string &parentCategoryName, const std::string &categoryName, const std::string &message,
-           const LogLevel     level)
-  {
-    logImpl(parentCategoryName + NFLOG_CAT_SEP_O + categoryName + NFLOG_CAT_SEP_C, message, level);
-  }
-  */
-
-  void log(const std::string &message, const LogLevel level)
-  {
-    //log to temp category
-    logImpl(LogCategoryManager::getTempCategory(), message, level);
-  }
+  void info(const std::string &message) {}
 
   void info(const std::string &categoryName, const std::string &message)
   {
-    log(categoryName, message, LogLevel::Info);
-  }
-
-  void info(const std::string &message)
-  {
-    log(message, LogLevel::Info);
-  }
-
-  void warn(const std::string &message)
-  {
-    log(message, LogLevel::Warning);
+    loggingImpl(categoryName.c_str(), message.c_str(), LogLevel::Info);
   }
 
   void warn(const std::string &categoryName, const std::string &message)
   {
-    log(categoryName, message, LogLevel::Warning);
+    loggingImpl(categoryName.c_str(), message.c_str(), LogLevel::Warning);
   }
 
   void error(const std::string &categoryName, const std::string &message)
   {
-    log(categoryName, message, LogLevel::Error);
+    loggingImpl(categoryName.c_str(), message.c_str(), LogLevel::Error);
   }
-
-  void error(const std::string &message)
-  {
-    log(message, LogLevel::Error);
-  }
-
+  */
 
 }

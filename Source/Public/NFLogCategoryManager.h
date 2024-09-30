@@ -12,37 +12,40 @@
  *  See the GNU General Public License for more details.                      *
  ******************************************************************************/
 
-#include "NFLoggingCore.h"
+#ifndef NFLOGCATEGORYMANAGER_H
+#define NFLOGCATEGORYMANAGER_H
 
-#include <NFLogCategoryManager.h>
-#include <iostream>
-#include "NFLogCategory.h"
-#include "NFLogging.h"
+#include <NFLogCategory.h>
+#include <map>
 
-namespace nf::log::core
+namespace nf::log
 {
-  void logImpl(std::string message, const LogLevel level)
+  struct LogCategoryManager
   {
-    auto *category = LogCategoryManager::getCoreCategory();
-    logImpl(category, std::move(message), level);
-  }
+    LogCategoryManager()  = default; // Declaration (already in your header)
+    ~LogCategoryManager() = default; // Declaration (already in your header)
 
-  void logImpl(LogCategory *category, std::string message, LogLevel level)
-  {
-    const LogMessage *logMessage = new LogMessage(std::move(message), level);
-    logImpl(category, logMessage);
-  }
+    // Shutdown the LogCategoryManager
+    void shutDown();
 
-  void logImpl(LogCategory *category, const LogMessage *message)
-  {
-    if (G_LogFunction != nullptr)
-    {
-      G_LogFunction(category, message);
-      category->addLogMessage(const_cast<LogMessage *>(message));
-    }
-    else
-    {
-      std::cout << message->message << std::endl;
-    }
-  }
+    // Get predefined categories
+    [[nodiscard]] LogCategory*           getCoreCategory();
+    [[nodiscard]] NFLOG_API LogCategory* getTempCategory();
+
+    // Register a new category
+    std::shared_ptr<LogCategory> registerCategory(const char* name);
+
+    // Get a category by name
+    std::shared_ptr<LogCategory> getCategoryByName(const char* name);
+
+  private:
+    // All registered categories
+    std::map<std::string, std::shared_ptr<LogCategory>> allRegisteredCategories = {};
+
+  public:
+    static LogCategoryManager* m_Instance;
+  };
 }
+
+
+#endif // NFLOGCATEGORYMANAGER_H

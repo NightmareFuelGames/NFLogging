@@ -12,21 +12,19 @@
  *  See the GNU General Public License for more details.                      *
  ******************************************************************************/
 
+//
+// Created by User on 29/09/2024.
+//
 
-#include "NFLogCategory.h"
-
-#include <NFLogCategoryManager.h>
-#include <iostream>
+#include "NFLogMessage.h"
 
 namespace nf::log
 {
+  //  LogMessage::LogMessage(const char *message, LogLevel level) :
+  // LogMessage
 
-  LogCategory::~LogCategory() {}
-
-  void LogCategory::addLogMessage(const std::shared_ptr<LogMessage> &logMessage)
+  /*const char *LogMessage::getMessage() const
   {
-    m_logMessages.push_back(logMessage);
-  }
-
-
+    return message;
+  }*/
 }

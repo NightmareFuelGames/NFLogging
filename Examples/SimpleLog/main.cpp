@@ -4,88 +4,106 @@
 #include <array>
 #include <random>
 #include <thread>
+#include <chrono>
+#include <vector>
+
+#include <NFLoggingCommon.h>
+#include <NFLogging.h>
+#include <NFLogCategoryManager.h>
+#include <NFLogCategory.h>
+#include <NFLogMessage.h>
 
 
-static void logFunctionImplementation(
-  const nf::log::LogCategory *cat, const nf::log::LogMessage *message)
+// Logging function that will print log messages
+static void logFunctionImplementation(const nf::log::LogCategory *category,
+                                      const nf::log::LogMessage * message)
 {
-  std::cout << cat->getName() << " - " << nf::log::levelToString(message->level)
-    << " | " << message->message << std::endl;
+  std::cout << category->getName() << " -  | " << message->getMessage() << std::endl;
 }
 
-int main()
+// Function for each thread to execute logging operations
+void logRandomMessages(const std::array<std::string, 10> &namesArray, int threadId)
 {
-  static auto namesArray =
-    std::array<std::string, 10>{
-      "AAA",
-      "BBB",
-      "CCC",
-      "DDD",
-      "EEE",
-      "FFF",
-      "GGG",
-      "HHH",
-      "III",
-      "JJJ"
-    };
-
-  init(logFunctionImplementation);
-
-  for (auto &name : namesArray)
-  {
-    nf::log::log(name, "One run to register all. | Register World! | nf::log::LogLevel::Info", nf::log::LogLevel::Info);
-  }
-
-
-  auto val = std::random_device();
-  auto mt  = std::mt19937(val());
+  std::random_device rd;
+  std::mt19937       mt(rd());
 
   int levelIndex    = 0;
   int categoryIndex = 0;
-  // Record the start time
+
+  // Start the logging loop for 3 seconds
   const auto start_time = std::chrono::steady_clock::now();
   int        total      = 0;
-  // Run the loop for 10 minutes (600 seconds)
-  while (std::chrono::steady_clock::now() -
-    start_time < std::chrono::seconds(3))
+
+  while (std::chrono::steady_clock::now() - start_time < std::chrono::seconds(3))
   {
-    categoryIndex = std::uniform_int_distribution<int>(0, 8)(mt);
-    levelIndex    = std::uniform_int_distribution<int>(0, 3)(mt);
+    categoryIndex = std::uniform_int_distribution<int>(0, 9)(mt);
+    levelIndex    = std::uniform_int_distribution<int>(0, 2)(mt);
 
-    float timeleftInSeconds = std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::seconds(3) - (std::chrono::steady_clock::now() - start_time))
-      .count();
+    float timeLeftInSeconds = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::seconds(3) - (std::chrono::steady_clock::now() - start_time)
+      ).count();
 
-    std::string msgTime = "time left: " + std::to_string(timeleftInSeconds);
-
-    std::string msg = "Random message | Time: " + msgTime;
-    switch (levelIndex)
-    {
-    case 0:
-      nf::log::log(namesArray[categoryIndex], msg,
-                   nf::log::LogLevel::Info);
-      break;
-    case 1:
-      nf::log::log(namesArray[categoryIndex], msg,
-                   nf::log::LogLevel::Warning);
-      break;
-    case 2:
-      nf::log::log(namesArray[categoryIndex], msg,
-                   nf::log::LogLevel::Error);
-      break;
-    default:
-      nf::log::log(namesArray[categoryIndex], msg,
-                   nf::log::LogLevel::Info);
-      break;
-    }
-
+    std::string msgTime = "Time left: " + std::to_string(timeLeftInSeconds);
+    std::string msg     = "Thread " + std::to_string(threadId) + " | Random message | " + msgTime;
+    nf::log::log(namesArray[categoryIndex].c_str(),
+                 static_cast<nf::log::LogLevel>(levelIndex),
+                 msg.c_str());
     total++;
-    /*std::this_thread::sleep_for(std::chrono::milliseconds(100));*/
   }
-  nf::log::info("StartTime: " + std::to_string(start_time.time_since_epoch().count()));
-  nf::log::info("EndTime: " + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-  nf::log::info("Total: " + std::to_string(total));
-  nf::log::info("Shutting down now: " + std::to_string(total));
+}
+
+#include <NFLogging.h>
+
+int main()
+{
+  // Initialize the logging system with the custom log function
+  init(logFunctionImplementation);
+
+  // Predefined category names
+  static auto namesArray = std::array<std::string, 10>{
+    "AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH", "III", "JJJ"
+  };
+
+  // Register categories
+  std::string initialName = "topper";
+  nf::log::log(initialName.c_str(), nf::log::LogLevel::Info, "Registering categories");
+
+  for (const auto &name : namesArray)
+  {
+    nf::log::log(name.c_str(), nf::log::LogLevel::Info,
+                 ("Registering category: " + name).c_str());
+  }
+
+  // Create multiple threads to simulate concurrent logging
+  const int numThreads = 4;
+
+  std::vector<std::thread> threads;
+
+  auto start_time = std::chrono::steady_clock::now();
+
+  threads.reserve(numThreads);
+  for (int i = 0; i < numThreads; ++i)
+  {
+    threads.emplace_back(logRandomMessages, std::cref(namesArray), i);
+  }
+
+
+  // Wait for all threads to finish
+  for (auto &thread : threads)
+  {
+    thread.join();
+  }
+
+  // Log the total run information
+  const auto end_time = std::chrono::steady_clock::now();
+  nf::log::log("topper", nf::log::LogLevel::Info, "All threads have finished running");
+
+  nf::log::log("topper", nf::log::LogLevel::Info,
+               ("Total time taken: " + std::to_string(std::chrono::duration_cast<std::chrono::seconds>(
+                 end_time - start_time).count()) + " seconds").c_str());
+
+  // Shutdown the logging s
   nf::log::shutDown();
+
   return 0;
 }

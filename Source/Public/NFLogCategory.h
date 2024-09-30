@@ -17,54 +17,41 @@
 #define LOGCATEGORY_H
 
 #include <string>
-#include <NFLoggingCommon.h>
-#include <map>
 #include <vector>
+#include <memory>
+
+#include <NFLoggingCommon.h>
 
 namespace nf::log
 {
-  struct LogMessage;
-}
-
-namespace nf::log
-{
-  struct NFLOG_EXPORT LogCategory
+  struct LogCategory
   {
     friend struct LogCategoryManager;
 
   public:
-    explicit LogCategory(std::string name)
-      : m_Name(std::move(name))
+    explicit LogCategory(const char* name)
+      : c_Name(name)
     {
     }
 
     ~LogCategory();
 
-    [[nodiscard]] std::string getName() const
+    [[nodiscard]] const char* getName() const
     {
-      return std::string(
-          NFLOG_LOG_PREFIX) /*[Nightmare][*/
-        + NFLOG_CAT_SEP_O /*[*/
-        + m_Name /*category name*/
-        + NFLOG_CAT_SEP_C; /*]*/
+      return c_Name.c_str();
     }
 
-    std::vector<LogMessage*> getLogMessages() const
+    std::vector<std::shared_ptr<LogMessage>> getLogMessages() const
     {
       return m_logMessages;
     }
 
-    void addLogMessage(LogMessage* logMessage)
-    {
-      m_logMessages.push_back(logMessage);
-    }
+    void addLogMessage(const std::shared_ptr<LogMessage>& logMessage);
 
-    /*void addMessage(LogMessage* msg);
-    */
+    const std::string c_Name;
 
   private:
-    std::vector<LogMessage*> m_logMessages = {};
-    const std::string        m_Name;
+    std::vector<std::shared_ptr<LogMessage>> m_logMessages = {};
   };
 }
 #endif //LOGCATEGORY_H

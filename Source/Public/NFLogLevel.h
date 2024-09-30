@@ -12,21 +12,18 @@
  *  See the GNU General Public License for more details.                      *
  ******************************************************************************/
 
+#ifndef NFLOGLEVEL_H
+#define NFLOGLEVEL_H
 
-#include "NFLogCategory.h"
-
-#include <NFLogCategoryManager.h>
-#include <iostream>
 
 namespace nf::log
 {
-
-  LogCategory::~LogCategory() {}
-
-  void LogCategory::addLogMessage(const std::shared_ptr<LogMessage> &logMessage)
+  enum LogLevel
   {
-    m_logMessages.push_back(logMessage);
-  }
-
-
+    Info    = 0,
+    Warning = 1,
+    Error   = 2
+  };
 }
+
+#endif //NFLOGLEVEL_H

@@ -13,19 +13,36 @@
  ******************************************************************************/
 
 //
-// Created by User on 27/09/2024.
+// Created by User on 29/09/2024.
 //
 
-#ifndef NFLOGGINGCORE_H
-#define NFLOGGINGCORE_H
+#ifndef NFLOGMESSAGE_H
+#define NFLOGMESSAGE_H
 
-#include "NFLogging.h"
+#include <string>
 
-namespace nf::log::core
+#include <NFLogLevel.h>
+
+namespace nf::log
 {
-  void logImpl(std::string message, LogLevel level);
-  void logImpl(LogCategory* category, std::string message, LogLevel level);
-  void logImpl(LogCategory* category, const LogMessage* message);
-}
+  struct LogMessage
+  {
+    explicit LogMessage(const char* message, LogLevel level)
+      : level(level),
+        message(message)
+    {
+    }
 
-#endif //NFLOGGINGCORE_H
+    [[nodiscard]] const char* getMessage() const
+    {
+      return message.c_str();
+    }
+
+    const LogLevel level;
+
+  private:
+    const std::string message;
+  };
+} // namespace nf::log
+
+#endif //NFLOGMESSAGE_H
