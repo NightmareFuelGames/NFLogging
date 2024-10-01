@@ -35,13 +35,13 @@ namespace nf::log
 
     [[nodiscard]] const char* getMessage() const
     {
-      return message.c_str();
+      return message;
     }
 
     const LogLevel level;
 
   private:
-    const std::string message;
+    const char* message;
   };
 } // namespace nf::log
 

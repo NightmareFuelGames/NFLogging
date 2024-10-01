@@ -34,9 +34,6 @@ typedef void (*LogFunctionPtr)(
   const nf::log::LogCategory* category,
   const nf::log::LogMessage*  message);
 
-////TEXT
-#define NFLOG_TCHAR wchar_t
-#define NFLOG_LOG_PREFIX "[Nightmare]"
-#define NFLOG_CAT_SEP_O  "["
-#define NFLOG_CAT_SEP_C  "]"
+////LOGGING DEFINES
+#define NFUE_LOGGING_NAMESPACE "UE"
 

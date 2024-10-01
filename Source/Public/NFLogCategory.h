@@ -38,7 +38,7 @@ namespace nf::log
 
     [[nodiscard]] const char* getName() const
     {
-      return c_Name.c_str();
+      return c_Name;
     }
 
     std::vector<std::shared_ptr<LogMessage>> getLogMessages() const
@@ -48,7 +48,7 @@ namespace nf::log
 
     void addLogMessage(const std::shared_ptr<LogMessage>& logMessage);
 
-    const std::string c_Name;
+    const char* c_Name;
 
   private:
     std::vector<std::shared_ptr<LogMessage>> m_logMessages = {};

@@ -40,7 +40,7 @@ namespace nf::log
 
   private:
     // All registered categories
-    std::map<std::string, std::shared_ptr<LogCategory>> allRegisteredCategories = {};
+    std::map<const char*, std::shared_ptr<LogCategory>> allRegisteredCategories = {};
 
   public:
     static LogCategoryManager* m_Instance;
