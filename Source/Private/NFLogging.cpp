@@ -23,68 +23,53 @@
 #include <NFLogCategory.h>
 #include <NFLogCategoryManager.h>
 
-namespace nf::log
-{
+namespace nf::log {
   LogFunctionPtr      G_LogFunction                  = nullptr;
   LogCategoryManager *LogCategoryManager::m_Instance = nullptr;
   static bool         initialized                    = false;
 
-  void init(LogFunctionPtr logFunc)
-  {
-    if (initialized) { return; }
-    G_LogFunction = logFunc;
+void init(LogFunctionPtr logFunc) {
+  if (LogCategoryManager::initialized) { return; }
+  G_LogFunction                  = logFunc;
+  LogCategoryManager::m_Instance = new LogCategoryManager();
+  LogCategoryManager::getInstance()->registerCategory("Core");
+  LogCategoryManager::getInstance()->registerCategory("Temp");
+  LogCategoryManager::initialized = true;
+}
 
-    LogCategoryManager::m_Instance = new LogCategoryManager();
+void shutDown() {
+  LogCategoryManager::getInstance()->shutDown();
+}
 
-    LogCategoryManager::m_Instance->registerCategory("Core");
-    LogCategoryManager::m_Instance->registerCategory("Temp");
-    initialized = true;
-  }
-
-  void shutDown()
-  {
-    if (LogCategoryManager::m_Instance != nullptr)
-    {
-      LogCategoryManager::m_Instance->shutDown();
-      delete LogCategoryManager::m_Instance;
-      LogCategoryManager::m_Instance = nullptr;
-    }
-  }
-
-  void callGlobalLogFunction(const std::shared_ptr<LogCategory> &category, const std::shared_ptr<LogMessage> &message)
-  {
-    if (G_LogFunction != nullptr)
-    {
-      G_LogFunction(category.get(), message.get());
-    }
-    else
-    {
-      std::cout
+void callGlobalLogFunction(const std::shared_ptr<LogCategory> &category,
+                           const std::shared_ptr<LogMessage> & message) {
+  if (G_LogFunction != nullptr) {
+    G_LogFunction(category.get(), message.get());
+  } else {
+    std::cout
         << std::string()
-        << category->c_Name
+        << category->getName()
         << std::string(" | ")
         << message->getMessage()
         << std::endl;
-    }
+  }
+}
+
+void log(const char *category, LogLevel level, const char *message) noexcept {
+  static std::mutex m_mutex;
+  //lock
+  std::lock_guard lock(m_mutex);
+
+  if (!LogCategoryManager::initialized) {
+    return;
   }
 
-  void log(const char *category, LogLevel level, const char *message) noexcept
-  {
-    static std::mutex m_mutex;
-    //lock
-    std::lock_guard<std::mutex> lock(m_mutex);
+  const auto logCategory = LogCategoryManager::getInstance()->
+      getCategoryByName(category);
+  const auto logMessage = std::make_shared<LogMessage>(message, level);
 
-    if (!initialized)
-    {
-      return;
-    }
-
-    const auto logCategory =
-      LogCategoryManager::m_Instance->getCategoryByName(category);
-    const auto logMessage = std::make_shared<LogMessage>(message, level);
-
-    logCategory->addLogMessage(logMessage);
-    callGlobalLogFunction(logCategory, logMessage);
-  }
+  logCategory->addLogMessage(logMessage);
+  callGlobalLogFunction(logCategory, logMessage);
+}
 
 }

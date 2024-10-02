@@ -18,15 +18,40 @@
 #include <NFLogCategoryManager.h>
 #include <iostream>
 
-namespace nf::log
+namespace nf::log {
+bool LogCategory::init() {
+  return true;
+}
+
+LogCategory::~LogCategory() {
+  //std::cout << "LogCategory::~LogCategory() " << c_Name << std::endl;
+}
+
+void LogCategory::log(const char *message, LogLevel level) {
+  /*auto category = self();*/
+  LogCategoryManager::getInstance()->registerCategory(shared_from_this());
+}
+
+void LogCategory::addLogMessage(const std::shared_ptr<LogMessage> &logMessage) {
+  m_logMessages.push_back(logMessage);
+}
+
+
+/**
+ *
+ * @return Construct namespace string without own name
+ */
+std::string LogCategory::constructNameSpace() const noexcept
+// NOLINT(*-no-recursion)
 {
-
-  LogCategory::~LogCategory() {}
-
-  void LogCategory::addLogMessage(const std::shared_ptr<LogMessage> &logMessage)
-  {
-    m_logMessages.push_back(logMessage);
+  if (m_parent == nullptr) {
+    return getName();
+  } else {
+    const std::string parentName = m_parent->getName();
+    const std::string nameSpace  = parentName + "." + c_Name;
+    return nameSpace;
   }
+}
 
 
 }

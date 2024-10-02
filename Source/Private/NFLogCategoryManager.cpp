@@ -1,45 +1,49 @@
 #include "NFLogCategoryManager.h"
 #include <memory>
-#include <mutex>
 
-namespace nf::log
-{
-  std::shared_ptr<LogCategory> LogCategoryManager::registerCategory(const char *name)
-  {
-    std::shared_ptr<LogCategory> cat = getCategoryByName(name);
-    if (!cat)
-    {
-      allRegisteredCategories[name] = std::make_shared<LogCategory>(name);
-    }
-    return cat;
+namespace nf::log {
+std::shared_ptr<LogCategory> LogCategoryManager::registerCategory(
+    const char *name) {
+  std::shared_ptr<LogCategory> cat = getCategoryByName(name);
+  if (!cat) {
+    m_subCategories[name] = std::make_shared<LogCategory>(name);
+  }
+  return cat;
+}
+
+bool LogCategoryManager::registerCategory(
+    const std::shared_ptr<LogCategory> &category) {
+  std::shared_ptr<LogCategory> cat = getCategoryByName(category->getName());
+  if (!cat) {
+    m_subCategories[category->getName()] = category;
+    return true;
   }
 
-  //void LogCategoryManager::sendLogCoreCategory(const std::string &message, LogLevel level) {}
-  //void LogCategoryManager::sendLogTempCategory(const std::string &message, LogLevel level) {}
+  return false;
+}
 
-  std::shared_ptr<LogCategory> LogCategoryManager::getCategoryByName(const char *name)
-  {
-    auto it = allRegisteredCategories.find(name);
-    if (it != allRegisteredCategories.end())
-    {
-      return it->second;
-    }
-    allRegisteredCategories[name] = std::make_shared<LogCategory>(name);
-    return allRegisteredCategories[name];
+std::shared_ptr<LogCategory> LogCategoryManager::getCategoryByName(
+    const char *name) {
+  if (name == nullptr) {
+    return nullptr;
   }
+  if (this == nullptr) {
+    return nullptr;
+  }
+  auto it = m_subCategories.find(name);
+  if (it != m_subCategories.end()) {
+    return it->second;
+  }
+  m_subCategories[name] = std::make_shared<LogCategory>(name);
+  return m_subCategories[name];
+}
 
-  void LogCategoryManager::shutDown()
-  {
-    allRegisteredCategories.clear();
-  }
+void LogCategoryManager::shutDown() {
+  m_subCategories.clear();
+}
 
-  LogCategory *LogCategoryManager::getTempCategory()
-  {
-    return allRegisteredCategories["Temp"].get();
-  }
+LogCategory *LogCategoryManager::getTempCategory() {
+  return LogCategoryManager::m_Instance->m_subCategories["Temp"].get();
+}
 
-  LogCategory *LogCategoryManager::getCoreCategory()
-  {
-    return allRegisteredCategories["Core"].get();
-  }
 }

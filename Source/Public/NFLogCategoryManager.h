@@ -22,27 +22,39 @@ namespace nf::log
 {
   struct LogCategoryManager
   {
-    LogCategoryManager()  = default; // Declaration (already in your header)
-    ~LogCategoryManager() = default; // Declaration (already in your header)
+    LogCategoryManager() = default;
 
-    // Shutdown the LogCategoryManager
+    static LogCategoryManager* getInstance()
+    {
+      if (m_Instance != nullptr)
+      {
+        m_Instance = new LogCategoryManager();
+        m_Instance->init();
+      }
+      return m_Instance;
+    }
+
     void shutDown();
 
-    // Get predefined categories
-    [[nodiscard]] LogCategory*           getCoreCategory();
-    [[nodiscard]] NFLOG_API LogCategory* getTempCategory();
+    [[nodiscard]] static NFLOG_API LogCategory* getCoreCategory();
+    [[nodiscard]] static NFLOG_API LogCategory* getTempCategory();
 
     // Register a new category
     std::shared_ptr<LogCategory> registerCategory(const char* name);
+    bool                         registerCategory(const std::shared_ptr<LogCategory>& category);
 
     // Get a category by name
     std::shared_ptr<LogCategory> getCategoryByName(const char* name);
 
   private:
-    // All registered categories
-    std::map<const char*, std::shared_ptr<LogCategory>> allRegisteredCategories = {};
+    /**/
 
-  public:
+    // Shutdown the LogCategoryManager
+
+
+    bool                                                init();
+    std::map<const char*, std::shared_ptr<LogCategory>> m_subCategories = {}; // All registered categories
+  private:
     static LogCategoryManager* m_Instance;
   };
 }

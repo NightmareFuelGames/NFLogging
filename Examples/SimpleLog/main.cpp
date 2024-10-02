@@ -59,6 +59,18 @@ int main()
   // Initialize the logging system with the custom log function
   init(logFunctionImplementation);
 
+  std::shared_ptr<nf::log::LogCategory> cat1 = std::make_shared<nf::log::LogCategory>("");
+  cat1->log("Hello", nf::log::LogLevel::Info);
+  cat1->log("Hello2", nf::log::LogLevel::Info);
+  cat1->log("Hello4", nf::log::LogLevel::Info);
+  std::shared_ptr<nf::log::LogCategory> cat2 = std::make_shared<nf::log::LogCategory>("");
+  std::shared_ptr<nf::log::LogCategory> cat3 = std::make_shared<nf::log::LogCategory>("");
+
+
+  std::cout << "Full namespace: " << cat3->getNamespace() << std::endl;
+
+  return 0;
+
   // Predefined category names
   static auto namesArray = std::array<std::string, 10>{
     "AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH", "III", "JJJ"
