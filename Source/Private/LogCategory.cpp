@@ -14,44 +14,37 @@
 
 
 #include "NFLogCategory.h"
-
-#include <NFLogCategoryManager.h>
+#include <NFLogMessage.h>
+#include <NFLogging_Priv.h>
 #include <iostream>
 
-namespace nf::log {
-bool LogCategory::init() {
-  return true;
-}
-
-LogCategory::~LogCategory() {
-  //std::cout << "LogCategory::~LogCategory() " << c_Name << std::endl;
-}
-
-void LogCategory::log(const char *message, LogLevel level) {
-  /*auto category = self();*/
-  LogCategoryManager::getInstance()->registerCategory(shared_from_this());
-}
-
-void LogCategory::addLogMessage(const std::shared_ptr<LogMessage> &logMessage) {
-  m_logMessages.push_back(logMessage);
-}
-
-
-/**
- *
- * @return Construct namespace string without own name
- */
-std::string LogCategory::constructNameSpace() const noexcept
-// NOLINT(*-no-recursion)
+namespace nf::log
 {
-  if (m_parent == nullptr) {
-    return getName();
-  } else {
+  LogCategory::~LogCategory() {}
+
+  void LogCategory::log(const char *message, LogLevel level)
+  {
+    const auto logMessage = std::make_shared<LogMessage>(message, level);
+    addLogMessage(logMessage);
+    callGlobalLogFunction_Implementation(*this, *logMessage);
+  }
+
+  void LogCategory::addLogMessage(const std::shared_ptr<LogMessage> &logMessage)
+  {
+    m_logMessages.push_back(logMessage);
+  }
+
+  std::string LogCategory::constructNameSpace() const noexcept
+  {
+    if (m_parent == nullptr)
+    {
+      return getName();
+    }
+
     const std::string parentName = m_parent->getName();
     const std::string nameSpace  = parentName + "." + c_Name;
     return nameSpace;
   }
-}
 
 
 }

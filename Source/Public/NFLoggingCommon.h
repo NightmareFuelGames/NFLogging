@@ -1,6 +1,5 @@
 #pragma once
 
-
 #ifdef NFLOG_EXPORTS
 #if defined(_MSC_VER)
 #define NFLOG_API __declspec(dllexport) // Microsoft
@@ -22,10 +21,22 @@
 #define FORCEINLINE __inline
 #endif
 #endif
-#include <cstdarg>
-#include <string>
 
-////typedefss
+///////////////////////////////////////////////////////////////////////////////
+///SYSTEM INCLUDES
+///
+
+#include <string>
+#include <cassert>
+#include <memory>
+#include <map>
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <algorithm>
+#include <functional>
+
 namespace nf::log
 {
   struct LogCategory;
@@ -33,21 +44,14 @@ namespace nf::log
 };
 
 typedef void (*LogFunctionPtr)(
-  const nf::log::LogCategory* category,
-  const nf::log::LogMessage*  message);
+  const nf::log::LogCategory& category,
+  const nf::log::LogMessage&  message);
 
-/******************************************************************************
- *  Logging Macros
- ******************************************************************************/
+extern LogFunctionPtr G_LogFunction;
 
 #define NF_LOG_NAMESPACE_STR "NF"
 #define NF_LOG_NAMESPACE_SEP "::"
-
 #define NF_LOG_MANAGER_NAME "LOGMANAGER"
-
-//////
-//Create namespace like this: NF_LOG_CREATE_NAMESPACE_A("MyNamespace", "MySubNamespace")
-//This will create a namespace like this: NF::MyNamespace::MySubNamespace::test
 
 #define NF_LOG_CREATE_NAMESPACE_INTERNAL(outstring, ...) \
   do { \

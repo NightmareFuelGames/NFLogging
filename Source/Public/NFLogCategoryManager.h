@@ -15,21 +15,25 @@
 #ifndef NFLOGCATEGORYMANAGER_H
 #define NFLOGCATEGORYMANAGER_H
 
-#include <NFLogCategory.h>
-#include <map>
+#include <NFLoggingCommon.h>
 
 namespace nf::log
 {
   struct LogCategoryManager
   {
-    LogCategoryManager() = default;
+  private:
+    LogCategoryManager()  = default;
+    ~LogCategoryManager() = default;
 
+  public:
     static LogCategoryManager* getInstance()
     {
       if (m_Instance != nullptr)
       {
-        m_Instance = new LogCategoryManager();
-        m_Instance->init();
+        if (!init())
+        {
+          assert(m_Instance != nullptr);
+        }
       }
       return m_Instance;
     }
@@ -41,18 +45,16 @@ namespace nf::log
 
     // Register a new category
     std::shared_ptr<LogCategory> registerCategory(const char* name);
-    bool                         registerCategory(const std::shared_ptr<LogCategory>& category);
+
+    bool registerCategory(const std::shared_ptr<LogCategory>& category);
 
     // Get a category by name
     std::shared_ptr<LogCategory> getCategoryByName(const char* name);
 
   private:
-    /**/
-
     // Shutdown the LogCategoryManager
+    static bool init();
 
-
-    bool                                                init();
     std::map<const char*, std::shared_ptr<LogCategory>> m_subCategories = {}; // All registered categories
   private:
     static LogCategoryManager* m_Instance;

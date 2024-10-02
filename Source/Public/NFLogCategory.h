@@ -45,31 +45,19 @@ namespace nf::log
         c_Namespace = constructNameSpace();
         return;
       }
-
-      LogCategory::init();
     }
-
-    /*todo: implement this
-    LogCategory(const char* name, const std::shared_ptr<LogCategory>& parent)
-      : c_Name(name), m_parent(parent)
-    {
-      init();
-    }
-
-    LogCategory(const char* name, std::shared_ptr<LogCategory> parent)
-      : c_Name(name), m_parent(std::move(parent))
-    {
-      init();
-    }*/
-
 
     virtual ~LogCategory();
 
   public :
     void log(const char* message, LogLevel level);
+    void info(const char* message) { log(message, LogLevel::Info); }
+    void warn(const char* message) { log(message, LogLevel::Warning); }
+    void error(const char* message) { log(message, LogLevel::Error); }
 
+    [[nodiscard]]
 
-    [[nodiscard]] const char* getNamespace() const
+    const char* getNamespace() const
     {
       return c_Namespace.c_str();
     }
@@ -78,8 +66,6 @@ namespace nf::log
     {
       return c_Name;
     }
-
-    X\
 
     std::vector<std::shared_ptr<LogMessage>>& getLogMessages()
     {
@@ -97,8 +83,10 @@ namespace nf::log
 
     std::shared_ptr<LogCategory> m_parent = nullptr;
 
-    std::vector<std::shared_ptr<LogMessage>>            m_logMessages   = {};
+    std::vector<std::shared_ptr<LogMessage>> m_logMessages = {};
+    /*todo: implement subcategories
     std::map<const char*, std::shared_ptr<LogCategory>> m_subCategories = {};
+    */
   };
 }
 #endif //LOGCATEGORY_H

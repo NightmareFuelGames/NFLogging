@@ -15,10 +15,10 @@
 
 
 // Logging function that will print log messages
-static void logFunctionImplementation(const nf::log::LogCategory *category,
-                                      const nf::log::LogMessage * message)
+static void logFunctionImplementation(const nf::log::LogCategory &category,
+                                      const nf::log::LogMessage & message)
 {
-  std::cout << category->getName() << " -  | " << message->getMessage() << std::endl;
+  std::cout << category.getName() << " -  | " << message.getMessage() << std::endl;
 }
 
 // Function for each thread to execute logging operations

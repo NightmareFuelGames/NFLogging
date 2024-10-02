@@ -21,6 +21,7 @@ add_library(${NFLoggingTarget} SHARED
         Private/NFLogCategoryManager.cpp
         Private/NFLogging.cpp
         Private/NFLogMessage.cpp
+        Private/NFLogging_Priv.h
 )
 
 target_compile_definitions(

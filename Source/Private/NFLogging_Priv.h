@@ -12,18 +12,16 @@
  *  See the GNU General Public License for more details.                      *
  ******************************************************************************/
 
-#ifndef NFLOGLEVEL_H
-#define NFLOGLEVEL_H
+//
+// Created by User on 02/10/2024.
+//
 
+#ifndef NFLOGGING_PRIV_H
+#define NFLOGGING_PRIV_H
 
 namespace nf::log
 {
-  enum class LogLevel
-  {
-    Info    = 0,
-    Warning = 1,
-    Error   = 2
-  };
+  void callGlobalLogFunction_Implementation(const LogCategory &category,
+                                            const LogMessage & message);
 }
-
-#endif //NFLOGLEVEL_H
+#endif //NFLOGGING_PRIV_H

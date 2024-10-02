@@ -18,16 +18,13 @@
 
 #ifndef NFLOGMESSAGE_H
 #define NFLOGMESSAGE_H
-
-#include <string>
-
 #include <NFLogLevel.h>
 
 namespace nf::log
 {
   struct LogMessage
   {
-    explicit LogMessage(const char* message, LogLevel level)
+    explicit LogMessage(const char* message, const LogLevel level)
       : level(level),
         message(message)
     {

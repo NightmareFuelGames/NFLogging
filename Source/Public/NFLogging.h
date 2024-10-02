@@ -1,15 +1,11 @@
 #ifndef NFLOGGING_H
 #define NFLOGGING_H
 
-#include <NFLogLevel.h>
-
-#include "NFLoggingCommon.h"
-
-#include "NFLogCategory.h"
+#include <NFLoggingCommon.h>
 
 namespace nf::log
 {
-  extern LogFunctionPtr G_LogFunction;
+  enum class LogLevel;
 
   NFLOG_API void init(LogFunctionPtr logFunc);
 
